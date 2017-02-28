@@ -20,26 +20,31 @@ const prismThemeDir = path.join(prismDir, 'themes');
 const prismjsFilePath = path.join(prismThemeDir, 'prism.js');
 
 // Plugin settings from config
-const prismThemeName = hexo.config.prism_plugin.theme || '';
+const prismThemeName = hexo.config.prism_plugin.theme || 'default';
 const mode = hexo.config.prism_plugin.mode || 'preprocess';
 const line_number = hexo.config.prism_plugin.line_number || false;
+const auto_import_assets = hexo.config.prism_plugin.auto_import_assets || true;
 
 const prismThemeFileName = 'prism' + (prismThemeName === 'default' ? '' : `-${prismThemeName}`) + '.css';
 const prismThemeFilePath = path.join(prismThemeDir, prismThemeFileName);
 
 /**
- * Unescape from Marked escape
+ * Unescape from Marked escape.
+ *
  * @param {String} str
  * @return {String}
  */
 function unescape(str) {
   if (!str || str == null) return '';
+
   const re = new RegExp('(' + Object.keys(map).join('|') + ')', 'g');
-  return String(str).replace(re, (match) => map[match]);
+
+  return String(str).replace(re, match => map[match]);
 };
 
 /**
  * Code transform for prism plugin.
+ *
  * @param {Object} data
  * @return {Object}
  */
@@ -48,22 +53,29 @@ function PrismPlugin(data) {
     const lineNumbers = line_number ? 'line-numbers' : '';
     const startTag = `<pre class="${lineNumbers} language-${lang}"><code class="language-${lang}">`;
     const endTag = `</code></pre>`;
+
     code = unescape(code);
+
     let parsedCode = '';
     if (Prism.languages[lang]) {
       parsedCode = Prism.highlight(code, Prism.languages[lang]);
     } else {
       parsedCode = code;
     }
+
     if (line_number) {
       const match = parsedCode.match(/\n(?!$)/g);
       const linesNum = match ? match.length + 1 : 1;
+
       let lines = new Array(linesNum + 1);
       lines = lines.join('<span></span>');
+
       const startLine = '<span aria-hidden="true" class="line-numbers-rows">';
       const endLine = '</span>';
+
       parsedCode += startLine + lines + endLine;
     }
+
     return startTag + parsedCode + endTag;
   });
 
@@ -72,6 +84,8 @@ function PrismPlugin(data) {
 
 /**
  * Copy asset to hexo public folder.
+ * 
+ * @return {Array}
  */
 function copyAssets() {
   const assets = [{
@@ -80,7 +94,7 @@ function copyAssets() {
   }];
 
   // If line_number is enabled in plugin config add the corresponding stylesheet
-  if(line_number) {
+  if (line_number) {
     assets.push({
       path: 'css/prism-line-numbers.css',
       data: () => fs.createReadStream(path.join(prismDir, 'plugins/line-numbers', 'prism-line-numbers.css'))
@@ -93,6 +107,7 @@ function copyAssets() {
       path: 'js/prism.js',
       data: () => fs.createReadStream(path.join(prismDir, 'prism.js'))
     });
+
     if (line_number) {
       assets.push({
         path: 'js/prism-line-numbers.min.js',
@@ -115,21 +130,24 @@ function importAssets(code, data) {
     `<link rel="stylesheet" href="/css/${prismThemeFileName}" type="text/css">`
   ];
 
-  if(line_number) {
+  if (line_number) {
     css.push(`<link rel="stylesheet" href="/css/prism-line-numbers.css" type="text/css">`);
   }
-  if(mode === 'realtime') {
+
+  if (mode === 'realtime') {
     js.push('<script src="/js/prism.js"></script>');
-    if(line_number) {
+    if (line_number) {
       js.push('<script src="/js/prism-line-numbers.min.js"></script>');
     }
   }
+
   const imports = css.join('\n') + js.join('\n');
-  
+
   // Avoid duplicates
   if (code.indexOf(imports) > -1) {
     return code;
   }
+
   return code.replace(/<\s*\/\s*head\s*>/, imports + '</head>');;
 }
 
@@ -140,4 +158,6 @@ hexo.extend.filter.register('after_post_render', PrismPlugin);
 hexo.extend.generator.register('prism_assets', copyAssets);
 
 // Register for importing static assets
-hexo.extend.filter.register('after_render:html', importAssets);
+if (auto_import_assets) {
+  hexo.extend.filter.register('after_render:html', importAssets);
+}

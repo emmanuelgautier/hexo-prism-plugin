@@ -1,13 +1,16 @@
 {
-  "name": "hexo-prism-plugin",
+  "name": "hexo-prismjs-plugin",
   "version": "2.0.0",
   "description": "Hexo code highlight by Prism.js",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eric Huang",
-  "license": "ISC",
+  "author": {
+    "name": "Emmanuel Gautier",
+    "email": "npm@emmanuelgautier.fr"
+  },
+  "license": "GPL-3.0",
   "dependencies": {
     "hexo-fs": "^0.1.6",
     "prismjs": "^1.6.0",
