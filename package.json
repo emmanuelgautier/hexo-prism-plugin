@@ -13,7 +13,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "hexo-fs": "^0.1.6",
-    "prismjs": "^1.6.0",
-    "node-prismjs": "^0.1.0"
+    "node-prismjs": "^0.1.0",
+    "prismjs": "^1.6.0"
   }
 }
